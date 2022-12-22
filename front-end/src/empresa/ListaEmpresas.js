@@ -1,7 +1,7 @@
 import React,{useState} from "react";
-import {FlatList} from "react-native";
+import {FlatList,Alert} from "react-native";
 import {ListItem,Button} from '@rneui/themed';
-import Icon from "react-native-vector-icons/FontAwesome.js";
+import {obtemIcone,urlEmpresa,configPagina} from "../global.js";
 
 const estadoInicial = [
     {
@@ -21,24 +21,40 @@ const estadoInicial = [
     }
 ];
 
-export default function ListaEmpresas() {
+export default function ListaEmpresas(props) {
     const [empresas,setEmpresas] = useState(estadoInicial);
 
-    function obtemIcone(nome,tamanho,cor) {
-        return (
-            <Icon name={nome} size={tamanho} color={cor} />
-        );
+    function confirmaRemocao(empresa) {
+        const botoes = [
+            {
+                text: "Sim",
+                async onPress() {
+                    try {
+                        const opcoes =  {method: "DELETE",body: empresa,headers: configPagina};
+                        const resposta = await fetch(urlEmpresa + "/" + id,opcoes);
+                    }
+                    catch (erro) {
+                        Alert.alert("Excluir Empresa","Erro de servidor.");
+                    }
+                }
+            },
+            {
+                text: "Não"
+            }
+        ];
+
+        Alert.alert("Excluir Empresa","Deseja excluir a empresa?",botoes);
     }
 
     function obtemEmpresa({item: empresa}) {
         return (
-            <ListItem bottomDivider={true}>
+            <ListItem bottomDivider={true} onPress={() => props.navigation.navigate("FormularioEmpresa")}>
                 <ListItem.Content>
                     <ListItem.Title>{empresa.nome}</ListItem.Title>
                     <ListItem.Subtitle>{empresa.cnpj}</ListItem.Subtitle>
                 </ListItem.Content>
-                <Button type="clear" icon={obtemIcone("pencil",25,"skyblue")} />
-                <Button type="clear" icon={obtemIcone("trash",25,"skyblue")} />
+                <Button type="clear" icon={obtemIcone("pencil",25,"skyblue")} onPress={() => props.navigation.navigate("FormularioEmpresa",empresa)} />
+                <Button type="clear" icon={obtemIcone("trash",25,"skyblue")} onPress={() => confirmaRemocao(empresa)} />
             </ListItem>
         );
     }
