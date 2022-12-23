@@ -1,14 +1,20 @@
 import React,{useState} from "react";
 import {Text,SafeAreaView,TextInput,StyleSheet,Button,Alert} from "react-native";
-import {mascaraCnpj} from "../global.js";
+import {mascaraCnpj,cnpjValido} from "../global.js";
 
 export default function FormularioEmpresa(props) {
     const {route,navigation} = props;
     const [empresa,setEmpresa] = useState(route.params ? route.params : {});
 
-    function alterar(empresa) {
-        Alert.alert("Empresa","Dados alterados com sucesso.");
-        navigation.goBack();
+    function alterar() {
+        const msg = empresa.cnpj ? "Dados alterados com sucesso." : "Cadastro realizado com sucesso.";
+
+        if (empresa.cnpj && !cnpjValido(empresa.cnpj))
+            Alert.alert("Empresa","CNPJ inválido.");
+        else {
+            Alert.alert("Empresa",msg);
+            navigation.goBack();
+        }
     }
 
     function formataCnpj(cnpj) {
