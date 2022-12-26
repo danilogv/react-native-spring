@@ -1,4 +1,6 @@
+import {SafeAreaView,Text,StyleSheet} from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome.js";
+import {Button} from '@rneui/themed';
 
 export const configPagina = {
     "Access-Control-Allow-Origin": "*",
@@ -8,9 +10,40 @@ export const configPagina = {
 export const urlEmpresa = "http://localhost:8080/empresa";
 export const urlFuncionario = "http://localhost:8080/funcionario";
 
+export const estilo = StyleSheet.create({
+    painel: {
+        flexDirection: "row",
+        justifyContent: "flex-start",
+        alignItems: "center",
+        backgroundColor: "blue",
+        height: 50
+    },
+    painelMenu: {
+        flexDirection: "row"
+    },
+    textoBotao: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "white",
+        paddingLeft: 15,
+        paddingRight: 225
+    }
+});
+
 export function obtemIcone(nome,tamanho,cor) {
     return (
         <Icon name={nome} size={tamanho} color={cor} />
+    );
+}
+
+export function criaMenu(menuAtivo,dispatchMenu) {
+    return (
+        <SafeAreaView style={estilo.painelMenu}>
+            <Button type="clear" icon={obtemIcone("bars",25,"white")} onPress={() => menuAtivo(dispatchMenu)}>
+                <Text style={estilo.textoBotao}>Empresa</Text>
+            </Button>
+            <Button type="clear" icon={obtemIcone("sign-out",25,"white")} />
+        </SafeAreaView>
     );
 }
 

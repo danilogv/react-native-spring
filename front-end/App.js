@@ -1,4 +1,4 @@
-import React from "react";
+import React,{createContext,useContext} from "react";
 import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
 import ListaEmpresas from "./src/empresa/ListaEmpresas";
@@ -7,7 +7,7 @@ import ListaFuncionarios from "./src/funcionario/ListaFuncionarios";
 
 const Stack = createStackNavigator();
 
-export default function App(props) {
+export default function App() {
 
     return (
         <NavigationContainer>

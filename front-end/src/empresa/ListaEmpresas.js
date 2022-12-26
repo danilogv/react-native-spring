@@ -1,8 +1,11 @@
-import React,{useState} from "react";
-import {FlatList,Alert,SafeAreaView,Text,StyleSheet} from "react-native";
+import React,{useReducer,useState} from "react";
+import {FlatList,Alert,SafeAreaView} from "react-native";
 import {Menu,Provider} from 'react-native-paper';
 import {ListItem,Button} from '@rneui/themed';
-import {obtemIcone,urlEmpresa,configPagina} from "../global.js";
+import {estadoInicialMenu} from "../store/config.js";
+import {reducer} from "../store/menuReducer.js";
+import {menuAtivo,menuInativo} from "../store/menuAction.js";
+import {obtemIcone,urlEmpresa,configPagina,criaMenu,estilo} from "../global.js";
 
 const estadoInicial = [
     {
@@ -24,17 +27,7 @@ const estadoInicial = [
 
 export default function ListaEmpresas(props) {
     const [empresas,setEmpresas] = useState(estadoInicial);
-    const [menuVisivel,setMenuVisivel] = useState(false);
-
-    function criaMenu() {
-        return (
-            <SafeAreaView>
-                <Button type="clear" icon={obtemIcone("bars",25,"white")} onPress={() => setMenuVisivel(true)}>
-                    <Text style={estilo.textoBotao}>Empresa</Text>
-                </Button>
-            </SafeAreaView>
-        );
-    }
+    const [stateMenu,dispatchMenu] = useReducer(reducer,estadoInicialMenu);
 
     function confirmaRemocao(empresa) {
         const botoes = [
@@ -75,7 +68,7 @@ export default function ListaEmpresas(props) {
     return (
         <Provider>
             <SafeAreaView style={estilo.painel}>
-                <Menu visible={menuVisivel} onDismiss={() => setMenuVisivel(false)} anchor={criaMenu()}>
+                <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu)}>
                     <Menu.Item onPress={() => props.navigation.navigate("ListaEmpresas")} title="Empresas" />
                     <Menu.Item onPress={() => props.navigation.navigate("ListaFuncionarios")} title="Funcionários" />
                 </Menu>
@@ -87,16 +80,3 @@ export default function ListaEmpresas(props) {
     
 }
 
-const estilo = StyleSheet.create({
-    painel: {
-        flexDirection: "row",
-        justifyContent: "flex-start",
-        backgroundColor: "blue"
-    },
-    textoBotao: {
-        fontSize: 18,
-        fontWeight: "bold",
-        color: "white",
-        paddingLeft: 10
-    }
-});
