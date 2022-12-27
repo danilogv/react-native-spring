@@ -1,5 +1,5 @@
 import React,{useReducer,useState} from "react";
-import {FlatList,Alert,SafeAreaView} from "react-native";
+import {FlatList,Alert,TextInput,SafeAreaView,StyleSheet} from "react-native";
 import {Menu,Provider} from 'react-native-paper';
 import {ListItem,Button} from '@rneui/themed';
 import {estadoInicialMenu} from "../store/config.js";
@@ -27,7 +27,18 @@ const estadoInicial = [
 
 export default function ListaEmpresas(props) {
     const [empresas,setEmpresas] = useState(estadoInicial);
+    const [pesquisa,setPesquisa] = useState("");
     const [stateMenu,dispatchMenu] = useReducer(reducer,estadoInicialMenu);
+
+    async function filtrar() {
+        try {
+            const opcoes = {method: "GET",headers: configPagina};
+            const resposta = await fetch(urlEmpresa + "?nome=" + pesquisa,opcoes);
+        }
+        catch (erro) {
+            Alert.alert("Pesquisa Empresa","Erro de servidor.");
+        }
+    }
 
     function confirmaRemocao(empresa) {
         const botoes = [
@@ -55,8 +66,8 @@ export default function ListaEmpresas(props) {
         return (
             <ListItem bottomDivider={true} onPress={() => props.navigation.navigate("FormularioEmpresa")}>
                 <ListItem.Content>
-                    <ListItem.Title>{empresa.nome}</ListItem.Title>
-                    <ListItem.Subtitle>{empresa.cnpj}</ListItem.Subtitle>
+                    <ListItem.Title>Nome: {empresa.nome}</ListItem.Title>
+                    <ListItem.Subtitle>CNPJ: {empresa.cnpj}</ListItem.Subtitle>
                 </ListItem.Content>
                 <Button type="clear" icon={obtemIcone("plus",25,"skyblue")} onPress={() => props.navigation.navigate("FormularioEmpresa")} />
                 <Button type="clear" icon={obtemIcone("pencil",25,"skyblue")} onPress={() => props.navigation.navigate("FormularioEmpresa",empresa)} />
@@ -64,19 +75,33 @@ export default function ListaEmpresas(props) {
             </ListItem>
         );
     }
+
+    function alteraTela(nome) {
+        if (props.route.name !== nome) {
+            setPesquisa("");
+            props.navigation.navigate(nome);
+        }
+    }
       
     return (
         <Provider>
             <SafeAreaView style={estilo.painel}>
-                <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu)}>
-                    <Menu.Item onPress={() => props.navigation.navigate("ListaEmpresas")} title="Empresas" />
-                    <Menu.Item onPress={() => props.navigation.navigate("ListaFuncionarios")} title="Funcionários" />
+                <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu,"Empresa")}>
+                    <Menu.Item onPress={() => alteraTela("ListaEmpresas")} title="Empresas" />
+                    <Menu.Item onPress={() => alteraTela("ListaFuncionarios")} title="Funcionários" />
                 </Menu>
             </SafeAreaView>
+            <TextInput placeholder="Pesquisar por nome" onChangeText={(nome) => setPesquisa(nome)} onSelectionChange={() => filtrar()} value={pesquisa} style={estiloEmpresa.filtro} />
             <FlatList keyExtractor={empresa => empresa.id.toString()} data={empresas} renderItem={obtemEmpresa} />
         </Provider>
-        
     );
-    
+
 }
 
+const estiloEmpresa = StyleSheet.create({
+    filtro: {
+        height: 50,
+        borderColor: "gray",
+        borderWidth: 1
+    }
+});

@@ -25,8 +25,7 @@ export const estilo = StyleSheet.create({
         fontSize: 18,
         fontWeight: "bold",
         color: "white",
-        paddingLeft: 15,
-        paddingRight: 225
+        paddingLeft: 15
     }
 });
 
@@ -36,11 +35,13 @@ export function obtemIcone(nome,tamanho,cor) {
     );
 }
 
-export function criaMenu(menuAtivo,dispatchMenu) {
+export function criaMenu(menuAtivo,dispatchMenu,titulo) {
+    const distanciaLogout = titulo === "Empresa" ? 225 : 200;
+
     return (
         <SafeAreaView style={estilo.painelMenu}>
             <Button type="clear" icon={obtemIcone("bars",25,"white")} onPress={() => menuAtivo(dispatchMenu)}>
-                <Text style={estilo.textoBotao}>Empresa</Text>
+                <Text style={[estilo.textoBotao,{paddingRight: distanciaLogout}]}>{titulo}</Text>
             </Button>
             <Button type="clear" icon={obtemIcone("sign-out",25,"white")} />
         </SafeAreaView>
