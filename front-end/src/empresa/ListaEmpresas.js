@@ -69,7 +69,6 @@ export default function ListaEmpresas(props) {
                     <ListItem.Title>Nome: {empresa.nome}</ListItem.Title>
                     <ListItem.Subtitle>CNPJ: {empresa.cnpj}</ListItem.Subtitle>
                 </ListItem.Content>
-                <Button type="clear" icon={obtemIcone("plus",25,"skyblue")} onPress={() => props.navigation.navigate("FormularioEmpresa")} />
                 <Button type="clear" icon={obtemIcone("pencil",25,"skyblue")} onPress={() => props.navigation.navigate("FormularioEmpresa",empresa)} />
                 <Button type="clear" icon={obtemIcone("trash",25,"skyblue")} onPress={() => confirmaRemocao(empresa)} />
             </ListItem>
@@ -93,6 +92,7 @@ export default function ListaEmpresas(props) {
             </SafeAreaView>
             <TextInput placeholder="Pesquisar por nome" onChangeText={(nome) => setPesquisa(nome)} onSelectionChange={() => filtrar()} value={pesquisa} style={estiloEmpresa.filtro} />
             <FlatList keyExtractor={empresa => empresa.id.toString()} data={empresas} renderItem={obtemEmpresa} />
+            <Button title="Cadastrar" color="blue" onPress={() => props.navigation.navigate("FormularioEmpresa")} />
         </Provider>
     );
 

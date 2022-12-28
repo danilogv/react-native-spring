@@ -26,6 +26,19 @@ export const estilo = StyleSheet.create({
         fontWeight: "bold",
         color: "white",
         paddingLeft: 15
+    },
+    formulario: {
+        padding: 15
+    },
+    titulo: {
+        fontWeight: "bold",
+        fontSize: 18
+    },
+    campo: {
+        height: 40,
+        borderColor: "gray",
+        borderWidth: 1,
+        marginBottom: 10
     }
 });
 
@@ -108,4 +121,76 @@ export function cnpjValido(cnpj) {
     if (resultado !== parseInt(digitos.charAt(1)))
         return false;
     return true;
+}
+
+export function mascaraCpf(cpf) {
+    return cpf.replace(/\D+/g, "")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1-$2")
+      .replace(/(-\d{2})\d+?$/, "$1")
+    ;
+}
+
+export function cpfValido(cpf) {
+    cpf = cpf.replace(/[^\d]+/g,'');
+    if (cpf.length !== 11)
+        return false;
+    if (cpf === "00000000000")
+        return false;
+    if (cpf === "11111111111")
+        return false;
+    if (cpf === "22222222222")
+        return false;
+    if (cpf === "33333333333")
+        return false;
+    if (cpf === "44444444444")
+        return false;
+    if (cpf === "55555555555")
+        return false;
+    if (cpf === "66666666666")
+        return false;
+    if (cpf === "77777777777")
+        return false;
+    if (cpf === "88888888888")
+        return false;
+    if (cpf === "99999999999")
+        return false;
+    let soma = 0;
+    for (let i = 0;i < 9;i++)
+        soma += parseInt(cpf.charAt(i)) * (10 - i);
+    let rev = 11 - (soma % 11);
+    if (rev === 10 || rev === 11)
+        rev = 0;
+    if (rev !== parseInt(cpf.charAt(9)))
+        return false;
+    soma = 0;
+    for (let i = 0;i < 10;i++)
+        soma += parseInt(cpf.charAt(i)) * (11 - i);
+    rev = 11 - (soma % 11);
+    if (rev === 10 || rev === 11)
+        rev = 0;
+    if (rev !== parseInt(cpf.charAt(10)))
+        return false;
+    return true;
+}
+
+export function formataDecimal(valor) {
+    if ((valor.match(/,/g) || []).length > 1) 
+        valor = valor.substring(0,valor.length - 1);
+    valor = valor.replace(/(,\d{2})\d*/g, "$1");
+    valor = valor.replace(/[^\d,]+/g, "");
+    return valor;
+}
+
+export function separadorMilhar(valor) {
+    valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    if (valor.indexOf(",") === -1)
+        valor += ",00";
+    else {
+        const valorCentavos = valor.split(",");
+        if (valorCentavos[1].length === 1)
+            valor += "0";
+    }
+    return valor;
 }
