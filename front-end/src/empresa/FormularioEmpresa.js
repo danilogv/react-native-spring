@@ -18,12 +18,24 @@ export default function FormularioEmpresa(props) {
             ehInsercao = false;
     },[]);
 
-    function alterar() {
-        const msg = ehInsercao ? "Empresa cadastrada com sucesso." : "Empresa alterada com sucesso.";
-
-        if (empresa.cnpj && !cnpjValido(empresa.cnpj))
+    function validou() {
+        if (!empresa.nome || empresa.nome === "") {
+            Alert.alert("Empresa","Informe o nome.");
+            return false;
+        }
+        if (!empresa.cnpj || empresa.cnpj === "") {
+            Alert.alert("Empresa","Informe o CNPJ.");
+            return false;
+        }
+        if (empresa.cnpj && !cnpjValido(empresa.cnpj)) {
             Alert.alert("Empresa","CNPJ inválido.");
-        else {
+            return false;
+        }
+    }
+
+    function alterar() {
+        if (validou()) {
+            const msg = ehInsercao ? "Empresa cadastrada com sucesso." : "Empresa alterada com sucesso.";
             Alert.alert("Empresa",msg);
             navigation.goBack();
         }
