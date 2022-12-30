@@ -1,7 +1,7 @@
 import React,{useState,useReducer,useEffect} from "react";
 import {Text,SafeAreaView,TextInput,Button,Alert} from "react-native";
 import {Menu,Provider} from 'react-native-paper';
-import {criaMenu,estilo,mascaraCnpj,cnpjValido} from "../global.js";
+import {criaMenu,estilo,mascaraCnpj,cnpjValido,configPagina,urlEmpresa,obtemMensagemErro} from "../global.js";
 import {estadoInicialMenu} from "../store/config.js";
 import {reducer} from "../store/menuReducer.js";
 import {menuAtivo,menuInativo} from "../store/menuAction.js";
@@ -23,21 +23,43 @@ export default function FormularioEmpresa(props) {
             Alert.alert("Empresa","Informe o nome.");
             return false;
         }
+
         if (!empresa.cnpj || empresa.cnpj === "") {
             Alert.alert("Empresa","Informe o CNPJ.");
             return false;
         }
+
         if (empresa.cnpj && !cnpjValido(empresa.cnpj)) {
             Alert.alert("Empresa","CNPJ inválido.");
             return false;
         }
+
+        return true;
     }
 
-    function alterar() {
-        if (validou()) {
-            const msg = ehInsercao ? "Empresa cadastrada com sucesso." : "Empresa alterada com sucesso.";
-            Alert.alert("Empresa",msg);
-            navigation.goBack();
+    async function alterar() {
+        try {
+            if (validou()) {
+                let opcoes = undefined;
+
+                if (ehInsercao)
+                    opcoes = {method: "POST",body: JSON.stringify(empresa),headers: configPagina};
+                else
+                    opcoes = {method: "PUT",body: JSON.stringify(empresa),headers: configPagina};
+                
+                const resposta = await fetch(urlEmpresa,opcoes);
+                const msg = await obtemMensagemErro(resposta);
+                
+                if (msg && msg !== "")
+                    throw new Error(msg);
+
+                msg = ehInsercao ? "Empresa cadastrada com sucesso." : "Empresa alterada com sucesso.";
+                Alert.alert("Empresa",msg);
+                navigation.goBack();
+            }
+        }
+        catch (erro) {
+            Alert.alert("Empresa","Erro de servidor : " + erro.message);
         }
     }
 
@@ -54,7 +76,7 @@ export default function FormularioEmpresa(props) {
     return (
         <Provider>
             <SafeAreaView style={estilo.painel}>
-                <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu,"Empresa")}>
+                <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu,navigation,"Empresa")}>
                     <Menu.Item onPress={() => alteraTela("ListaEmpresas")} title="Empresas" />
                     <Menu.Item onPress={() => alteraTela("ListaFuncionarios")} title="Funcionários" />
                 </Menu>

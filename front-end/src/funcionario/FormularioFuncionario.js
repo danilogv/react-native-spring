@@ -2,7 +2,7 @@ import React,{useState,useReducer,useEffect} from "react";
 import {Text,SafeAreaView,TextInput,Button,Alert} from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import {Menu,Provider} from 'react-native-paper';
-import {criaMenu,estilo,mascaraCpf,cpfValido,formataDecimal,separadorMilhar} from "../global.js";
+import {criaMenu,estilo,mascaraCpf,cpfValido,formataDecimal,separadorMilhar,configPagina,urlFuncionario} from "../global.js";
 import {estadoInicialMenu} from "../store/config.js";
 import {reducer} from "../store/menuReducer.js";
 import {menuAtivo,menuInativo} from "../store/menuAction.js";
@@ -32,26 +32,32 @@ export default function FormularioFuncionario(props) {
             Alert.alert("Funcionário","Informe o nome.");
             return false;
         }
+
         if (!funcionario.cpf || funcionario.cpf === "") {
             Alert.alert("Funcionário","Informe o CPF.");
             return false;
         }
+
         if (funcionario.cpf && !cpfValido(funcionario.cpf)) {
             Alert.alert("Funcionário","CPF inválido.");
             return false;
         }
+
         if (!funcionario.salario || funcionario.salario === "") {
             Alert.alert("Funcionário","Informe o salário.");
             return false;
         }
+
         if (!funcionario.idade || funcionario.idade === "") {
             Alert.alert("Funcionário","Informe a idade.");
             return false;
         }
+
         if (funcionario.idade && parseInt(funcionario.idade) < 18) {
             Alert.alert("Funcionário","Idade inferior a 18 anos.");
             return false;
         }
+
         if (ehInsercao && empresa == null) {
             Alert.alert("Funcionário","Informe a empresa.");
             return false;
@@ -60,11 +66,29 @@ export default function FormularioFuncionario(props) {
         return true;
     }
 
-    function alterar() {
-        if (validou()) {
-            const msg = ehInsercao ? "Funcionário cadastrado com sucesso." : "Dados alterados com sucesso.";
-            Alert.alert("Funcionário",msg);
-            navigation.goBack();
+    async function alterar() {
+        try {
+            if (validou()) {
+                let opcoes = undefined;
+
+                if (ehInsercao)
+                    opcoes = {method: "POST",body: JSON.stringify(funcionario),headers: configPagina};
+                else
+                    opcoes = {method: "PUT",body: JSON.stringify(funcionario),headers: configPagina};
+                
+                const resposta = await fetch(urlFuncionario,opcoes);
+                const msg = await obtemMensagemErro(resposta);
+                
+                if (msg && msg !== "")
+                    throw new Error(msg);
+
+                msg = ehInsercao ? "Funcionário cadastrado com sucesso." : "Dados alterados com sucesso.";
+                Alert.alert("Funcionário",msg);
+                navigation.goBack();
+            }
+        }
+        catch (erro) {
+            Alert.alert("Empresa","Erro de servidor : " + erro.message);
         }
     }
 
@@ -97,7 +121,7 @@ export default function FormularioFuncionario(props) {
     return (
         <Provider>
             <SafeAreaView style={estilo.painel}>
-                <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu,"Funcionário")}>
+                <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu,navigation,"Funcionário")}>
                     <Menu.Item onPress={() => alteraTela("ListaEmpresas")} title="Empresas" />
                     <Menu.Item onPress={() => alteraTela("ListaFuncionarios")} title="Funcionários" />
                 </Menu>

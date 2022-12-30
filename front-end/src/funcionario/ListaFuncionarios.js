@@ -5,7 +5,7 @@ import {ListItem,Button} from '@rneui/themed';
 import {estadoInicialMenu} from "../store/config.js";
 import {reducer} from "../store/menuReducer.js";
 import {menuAtivo,menuInativo} from "../store/menuAction.js";
-import {obtemIcone,configPagina,criaMenu,estilo,urlFuncionario,formataDecimal,separadorMilhar} from "../global.js";
+import {obtemIcone,configPagina,criaMenu,estilo,urlFuncionario,obtemMensagemErro} from "../global.js";
 
 const estadoInicial = [
     {
@@ -72,10 +72,14 @@ export default function ListaFuncionarios(props) {
                 async onPress() {
                     try {
                         const opcoes =  {method: "DELETE",body: funcionario,headers: configPagina};
-                        const resposta = await fetch(urlFuncionario + "/" + id,opcoes);
+                        const resposta = await fetch(urlFuncionario + "/" + funcionario.id,opcoes);
+                        const msg = await obtemMensagemErro(resposta);
+                
+                        if (msg && msg !== "")
+                            throw new Error(msg);
                     }
                     catch (erro) {
-                        Alert.alert("Excluir Funcionário","Erro de servidor.");
+                        Alert.alert("Excluir Funcionário","Erro de servidor." + erro.message);
                     }
                 }
             },
@@ -90,14 +94,14 @@ export default function ListaFuncionarios(props) {
     function obtemFuncionario({item: funcionario}) {
         let funcionarioAux = {...funcionario};
         funcionarioAux.idade = funcionarioAux.idade.toString();
-        funcionarioAux.salario = funcionarioAux.salario.toLocaleString("pt-BR");
+        funcionarioAux.salario = funcionarioAux.salario.toLocaleString("pt-BR",{style: "decimal",currency: "BRL",minimumFractionDigits: 2});
 
         return (
             <ListItem bottomDivider={true} onPress={() => props.navigation.navigate("FormularioFuncionario")}>
                 <ListItem.Content>
                     <ListItem.Title>Nome: {funcionario.nome}</ListItem.Title>
                     <ListItem.Subtitle>CPF: {funcionario.cpf}</ListItem.Subtitle>
-                    <ListItem.Subtitle>Salário: {funcionario.salario.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</ListItem.Subtitle>
+                    <ListItem.Subtitle>Salário: {funcionario.salario.toLocaleString("pt-BR",{style: "currency",currency: "BRL"})}</ListItem.Subtitle>
                     <ListItem.Subtitle>Idade: {funcionario.idade}</ListItem.Subtitle>
                     <ListItem.Subtitle>Empresa: {funcionario.empresa.nome}</ListItem.Subtitle>
                 </ListItem.Content>
@@ -117,7 +121,7 @@ export default function ListaFuncionarios(props) {
     return (
         <Provider>
             <SafeAreaView style={estilo.painel}>
-                <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu,"Funcionário")}>
+                <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu,props.navigation,"Funcionário")}>
                     <Menu.Item onPress={() => alteraTela("ListaEmpresas")} title="Empresas" />
                     <Menu.Item onPress={() => alteraTela("ListaFuncionarios")} title="Funcionários" />
                 </Menu>

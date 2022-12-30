@@ -5,7 +5,7 @@ import {ListItem,Button} from '@rneui/themed';
 import {estadoInicialMenu} from "../store/config.js";
 import {reducer} from "../store/menuReducer.js";
 import {menuAtivo,menuInativo} from "../store/menuAction.js";
-import {obtemIcone,urlEmpresa,configPagina,criaMenu,estilo} from "../global.js";
+import {obtemIcone,urlEmpresa,configPagina,criaMenu,estilo,obtemMensagemErro} from "../global.js";
 
 const estadoInicial = [
     {
@@ -47,10 +47,14 @@ export default function ListaEmpresas(props) {
                 async onPress() {
                     try {
                         const opcoes =  {method: "DELETE",body: empresa,headers: configPagina};
-                        const resposta = await fetch(urlEmpresa + "/" + id,opcoes);
+                        const resposta = await fetch(urlEmpresa + "/" + empresa.id,opcoes);
+                        const msg = await obtemMensagemErro(resposta);
+                
+                        if (msg && msg !== "")
+                            throw new Error(msg);
                     }
                     catch (erro) {
-                        Alert.alert("Excluir Empresa","Erro de servidor.");
+                        Alert.alert("Excluir Empresa","Erro de servidor." + erro.message);
                     }
                 }
             },
@@ -85,7 +89,7 @@ export default function ListaEmpresas(props) {
     return (
         <Provider>
             <SafeAreaView style={estilo.painel}>
-                <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu,"Empresa")}>
+                <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu,props.navigation,"Empresa")}>
                     <Menu.Item onPress={() => alteraTela("ListaEmpresas")} title="Empresas" />
                     <Menu.Item onPress={() => alteraTela("ListaFuncionarios")} title="Funcionários" />
                 </Menu>

@@ -5,6 +5,8 @@ import ListaEmpresas from "./src/empresa/ListaEmpresas.js";
 import FormularioEmpresa from "./src/empresa/FormularioEmpresa.js";
 import ListaFuncionarios from "./src/funcionario/ListaFuncionarios.js";
 import FormularioFuncionario from "./src/funcionario/FormularioFuncionario.js";
+import Login from "./src/usuario/Login.js";
+import FormularioUsuario from "./src/usuario/FormularioUsuario.js";
 
 const Stack = createStackNavigator();
 
@@ -12,7 +14,9 @@ export default function App() {
 
     return (
         <NavigationContainer>
-            <Stack.Navigator initialRouteName="ListaEmpresas" screenOptions={{headerShown: false}}>
+            <Stack.Navigator initialRouteName="Login" screenOptions={{headerShown: false}}>
+                <Stack.Screen name="Login" component={Login} />
+                <Stack.Screen name="FormularioUsuario" component={FormularioUsuario} />
                 <Stack.Screen name="ListaEmpresas" component={ListaEmpresas} />
                 <Stack.Screen name="FormularioEmpresa" component={FormularioEmpresa} />
                 <Stack.Screen name="ListaFuncionarios" component={ListaFuncionarios} />

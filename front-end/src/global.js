@@ -7,8 +7,11 @@ export const configPagina = {
     "Content-Type": "application/json"
 };
 
+export const urlUsuario = "http://localhost:8080/usuario";
 export const urlEmpresa = "http://localhost:8080/empresa";
 export const urlFuncionario = "http://localhost:8080/funcionario";
+export const tokenExpirou = "Token expirado.";
+export const erroServidor = "Erro de servidor.";
 
 export const estilo = StyleSheet.create({
     painel: {
@@ -48,7 +51,7 @@ export function obtemIcone(nome,tamanho,cor) {
     );
 }
 
-export function criaMenu(menuAtivo,dispatchMenu,titulo) {
+export function criaMenu(menuAtivo,dispatchMenu,navigation,titulo) {
     const distanciaLogout = titulo === "Empresa" ? 225 : 200;
 
     return (
@@ -56,7 +59,7 @@ export function criaMenu(menuAtivo,dispatchMenu,titulo) {
             <Button type="clear" icon={obtemIcone("bars",25,"white")} onPress={() => menuAtivo(dispatchMenu)}>
                 <Text style={[estilo.textoBotao,{paddingRight: distanciaLogout}]}>{titulo}</Text>
             </Button>
-            <Button type="clear" icon={obtemIcone("sign-out",25,"white")} />
+            <Button type="clear" icon={obtemIcone("sign-out",25,"white")} onPress={() => navigation.navigate("Login")} />
         </SafeAreaView>
     );
 }
@@ -192,5 +195,22 @@ export function separadorMilhar(valor) {
         if (valorCentavos[1].length === 1)
             valor += "0";
     }
+    
     return valor;
+}
+
+export async function obtemMensagemErro(resposta) {
+    if (resposta && !resposta.ok) {
+        if (resposta.status === 401)
+            return tokenExpirou;
+
+        if (resposta.status) {
+            const msg = await resposta.text();
+            return msg;
+        }
+
+        return erroServidor;
+    }
+
+    return "";
 }
