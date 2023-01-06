@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+    <changeSet id="2" author="danilo.vicente">
+        <createTable tableName="funcionario">
+            <column name="id" type="char(36)">
+                <constraints nullable="false" />
+            </column>
+            <column name="nome" type="varchar(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="cpf" type="char(14)">
+                <constraints nullable="false" />
+            </column>
+            <column name="salario" type="decimal(10,2)">
+                <constraints nullable="false" />
+            </column>
+            <column name="idade" type="int">
+                <constraints nullable="false" />
+            </column>
+            <column name="url_imagem" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="empresa_id" type="char(36)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="funcionario" columnNames="id" constraintName="pk_funcionario" />
+        <addForeignKeyConstraint baseTableName="funcionario" baseColumnNames="empresa_id" constraintName="fk_empresa" referencedTableName="empresa" referencedColumnNames="id" onDelete="CASCADE" />
+        <addUniqueConstraint tableName="funcionario" columnNames="cpf" constraintName="uq_cpf" />
+        <addUniqueConstraint tableName="funcionario" columnNames="cpf,empresa_id" constraintName="uq_cpf_empresa" />
+    </changeSet>
+</databaseChangeLog>
