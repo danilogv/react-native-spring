@@ -28,7 +28,7 @@ public class Funcionario {
     private BigDecimal salario;
 
     @Column(name = "idade")
-    private BigDecimal idade;
+    private Integer idade;
 
     @Column(name = "url_imagem")
     private String urlImagem;
@@ -69,11 +69,11 @@ public class Funcionario {
         this.salario = salario;
     }
 
-    public BigDecimal getIdade() {
+    public Integer getIdade() {
         return this.idade;
     }
 
-    public void setIdade(BigDecimal idade) {
+    public void setIdade(Integer idade) {
         this.idade = idade;
     }
 

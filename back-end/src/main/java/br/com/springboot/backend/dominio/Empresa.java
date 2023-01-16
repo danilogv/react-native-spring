@@ -19,6 +19,9 @@ public class Empresa implements Serializable {
     private String id;
 
     @Column(name = "nome")
+    private String nome;
+
+    @Column(name = "cnpj")
     private String cnpj;
 
     @OneToMany(mappedBy = "empresa",cascade = CascadeType.ALL,fetch = FetchType.EAGER)
@@ -30,6 +33,14 @@ public class Empresa implements Serializable {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getNome() {
+        return this.nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
     public String getCnpj() {
@@ -63,4 +74,5 @@ public class Empresa implements Serializable {
 
         return false;
     }
+
 }
