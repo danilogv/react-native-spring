@@ -4,7 +4,7 @@ import br.com.springboot.backend.dominio.Usuario;
 import br.com.springboot.backend.enumeracao.TipoOperacao;
 import br.com.springboot.backend.padrao_projeto.FacadeRepositorio;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,37 +58,37 @@ public class UsuarioServico extends FacadeRepositorio {
         String login = usuario.getLogin();
         String senha = usuario.getSenha();
 
-        if (login.isBlank()) {
-            String msg = "Informe o login do usuário.";
+        if (!operacao.equals(TipoOperacao.REMOCAO)) {
+            if (login.isBlank()) {
+                String msg = "Informe o login do usuário.";
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+            }
+
+            if (senha.isBlank()) {
+                String msg = "Informe a senha do usuário.";
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+            }
+
+            if (operacao.equals(TipoOperacao.INSERCAO)) {
+                //BCryptPasswordEncoder decodificacao = new BCryptPasswordEncoder();
+                //senha = decodificacao.encode(senha);
+
+                if (this.usuario.existsByLoginOrSenha(login,senha)) {
+                    String msg = "Usuário já cadastrado.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+            }
+
+            if (operacao.equals(TipoOperacao.ALTERACAO))
+                if (!this.usuario.existsByLogin(login) && this.usuario.existsByLoginAndSenha(login,senha)) {
+                    String msg = "Usuário já cadastrado.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+        }
+        else if (!this.usuario.existsById(id)) {
+            String msg = "Usuário não existe na base de dados.";
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
         }
-
-        if (senha.isBlank()) {
-            String msg = "Informe a senha do usuário.";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-        }
-
-        if (operacao.equals(TipoOperacao.INSERCAO)) {
-            BCryptPasswordEncoder decodificacao = new BCryptPasswordEncoder();
-            senha = decodificacao.encode(senha);
-
-            if (this.usuario.existsByLoginOrSenha(login,senha)) {
-                String msg = "Usuário já cadastrado.";
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-            }
-        }
-
-        if (operacao.equals(TipoOperacao.ALTERACAO))
-            if (!this.usuario.existsByLogin(login) && this.usuario.existsByLoginAndSenha(login,senha)) {
-                String msg = "Usuário já cadastrado.";
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-            }
-
-        if (operacao.equals(TipoOperacao.REMOCAO))
-            if (!this.usuario.existsById(id)) {
-                String msg = "Usuário não existe na base de dados.";
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-            }
 
     }
 

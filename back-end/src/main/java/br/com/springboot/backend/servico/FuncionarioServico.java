@@ -66,65 +66,101 @@ public class FuncionarioServico extends FacadeRepositorio {
         String cpf = funcionario.getCpf();
         BigDecimal salario = funcionario.getSalario();
         Integer idade = funcionario.getIdade();
-        Empresa empresa = funcionario.getEmpresa();
+        String empresaId = "";
+        Optional<Empresa> empresa = null;
 
-        if (nome.isBlank()) {
-            String msg = "Informe o nome do funcionário.";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+        if (Objects.nonNull(funcionario.getEmpresa()) && !funcionario.getEmpresa().getId().isBlank()) {
+            empresaId = funcionario.getEmpresa().getId();
+            empresa = this.empresa.findById(empresaId);
         }
 
-        if (cpf.isBlank()) {
-            String msg = "Informe o CPF do funcionário.";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+        if (Objects.nonNull(empresa) && empresa.isPresent())
+            funcionario.setEmpresa(empresa.get());
+
+        switch (operacao) {
+            case INSERCAO:
+                if (nome.isBlank()) {
+                    String msg = "Informe o nome do funcionário.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (cpf.isBlank()) {
+                    String msg = "Informe o CPF do funcionário.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (!Util.cpfValido(cpf)) {
+                    String msg = "CPF inválido.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (Objects.isNull(salario)) {
+                    String msg = "Informe o salário do funcionário.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (salario.compareTo(this.SALARIO_MINIMO) < 0) {
+                    String msg = "Salário do funcionário, inferior ao salário mínimo atual.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (Objects.isNull(idade)) {
+                    String msg = "Informe a idade do funcionário.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (idade.compareTo(this.MAIORIDADE) < 0) {
+                    String msg = "Idade do funcionário menor que 18 anos.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (empresaId.isBlank() || empresa.isEmpty()) {
+                    String msg = "Informe a empresa no qual o funcionário trabalha.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (this.funcionario.existsByCpfAndEmpresa(cpf,empresa.get())) {
+                    String msg = "Funcionário já cadastrado na empresa.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                break;
+            case ALTERACAO:
+                if (Objects.nonNull(cpf) && !cpf.isBlank() && !Util.cpfValido(cpf)) {
+                    String msg = "CPF inválido.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (Objects.nonNull(salario) && salario.compareTo(this.SALARIO_MINIMO) < 0) {
+                    String msg = "Salário do funcionário, inferior ao salário mínimo atual.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (Objects.nonNull(idade) && idade.compareTo(this.MAIORIDADE) < 0) {
+                    String msg = "Idade do funcionário menor que 18 anos.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (!empresaId.isBlank() && Objects.nonNull(empresa) && empresa.isEmpty()) {
+                    String msg = "Empresa inválida.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (Objects.nonNull(empresa) && Objects.nonNull(cpf))
+                    if (!this.funcionario.existsByCpf(cpf) && this.funcionario.existsByCpfAndEmpresa(cpf,empresa.get())) {
+                        String msg = "Funcionário já cadastrado na empresa.";
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                    }
+
+                break;
+            case REMOCAO:
+                if (Objects.isNull(id) || !this.funcionario.existsById(id)) {
+                    String msg = "Funcionário não existe na base de dados.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                break;
         }
-
-        if (!Util.cpfValido(cpf)) {
-            String msg = "CPF inválido.";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-        }
-
-        if (Objects.isNull(salario)) {
-            String msg = "Informe o salário do funcionário.";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-        }
-
-        if (salario.compareTo(this.SALARIO_MINIMO) < 0) {
-            String msg = "Salário do funcionário, inferior ao salário mínimo atual.";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-        }
-
-        if (Objects.isNull(idade)) {
-            String msg = "Informe a idade do funcionário.";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-        }
-
-        if (idade.compareTo(this.MAIORIDADE) < 0) {
-            String msg = "Idade do funcionário menor que 18 anos.";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-        }
-
-        if (Objects.isNull(empresa)) {
-            String msg = "Informe a empresa no qual o funcionário trabalha.";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-        }
-
-        if (operacao.equals(TipoOperacao.INSERCAO))
-            if (this.funcionario.existsByCpfAndEmpresa(cpf,empresa)) {
-                String msg = "Funcionário já cadastrado na empresa.";
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-            }
-
-        if (operacao.equals(TipoOperacao.ALTERACAO))
-            if (!this.funcionario.existsByCpf(cpf) && this.funcionario.existsByCpfAndEmpresa(cpf,empresa)) {
-                String msg = "Funcionário já cadastrado na empresa.";
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-            }
-
-        if (operacao.equals(TipoOperacao.REMOCAO))
-            if (!this.funcionario.existsById(id)) {
-                String msg = "Funcionário não existe na base de dados.";
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-            }
 
     }
 

@@ -60,38 +60,49 @@ public class EmpresaServico extends FacadeRepositorio {
         String nome = empresa.getNome();
         String cnpj = empresa.getCnpj();
 
-        if (nome.isBlank()) {
-            String msg = "Informe o nome da empresa.";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+        switch (operacao) {
+            case INSERCAO:
+                if (nome.isBlank()) {
+                    String msg = "Informe o nome da empresa.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (cnpj.isBlank()) {
+                    String msg = "Informe o CNPJ da empresa.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (!Util.cnpjValido(cnpj)) {
+                    String msg = "CNPJ inválido.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (this.empresa.existsByCnpj(empresa.getCnpj())) {
+                    String msg = "Empresa com CNPJ já cadastrado.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                break;
+            case ALTERACAO:
+                if (Objects.nonNull(cnpj) && !cnpj.isBlank() && !Util.cnpjValido(cnpj)) {
+                    String msg = "CNPJ inválido.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                if (Objects.isNull(this.buscar(id)) && this.empresa.existsByCnpj(cnpj)) {
+                    String msg = "Empresa com CNPJ já cadastrado.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                break;
+            case REMOCAO:
+                if (Objects.isNull(id) || !this.empresa.existsById(id)) {
+                    String msg = "Empresa não existe na base de dados.";
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
+                }
+
+                break;
         }
-
-        if (cnpj.isBlank()) {
-            String msg = "Informe o CNPJ da empresa.";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-        }
-
-        if (!Util.cnpjValido(cnpj)) {
-            String msg = "CNPJ inválido.";
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-        }
-
-        if (operacao.equals(TipoOperacao.INSERCAO))
-            if (this.empresa.existsByCnpj(empresa.getCnpj())) {
-                String msg = "Empresa com CNPJ já cadastrado.";
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-            }
-
-        if (operacao.equals(TipoOperacao.ALTERACAO))
-            if (Objects.isNull(this.buscar(id)) && this.empresa.existsByCnpj(cnpj)) {
-                String msg = "Empresa com CNPJ já cadastrado.";
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-            }
-
-        if (operacao.equals(TipoOperacao.REMOCAO))
-            if (!this.empresa.existsById(id)) {
-                String msg = "Empresa não existe na base de dados.";
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
-            }
 
     }
 

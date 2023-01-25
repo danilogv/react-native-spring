@@ -26,7 +26,6 @@
         </createTable>
         <addPrimaryKey tableName="funcionario" columnNames="id" constraintName="pk_funcionario" />
         <addForeignKeyConstraint baseTableName="funcionario" baseColumnNames="empresa_id" constraintName="fk_empresa" referencedTableName="empresa" referencedColumnNames="id" onDelete="CASCADE" />
-        <addUniqueConstraint tableName="funcionario" columnNames="cpf" constraintName="uq_cpf" />
         <addUniqueConstraint tableName="funcionario" columnNames="cpf,empresa_id" constraintName="uq_cpf_empresa" />
     </changeSet>
 </databaseChangeLog>

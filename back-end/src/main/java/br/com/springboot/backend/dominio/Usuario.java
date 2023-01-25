@@ -1,8 +1,8 @@
 package br.com.springboot.backend.dominio;
 
-import org.springframework.security.core.GrantedAuthority;
+/*import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetails;*/
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,7 +15,7 @@ import java.util.Collections;
 
 @Entity
 @Table(name = "usuario")
-public class Usuario implements Serializable,UserDetails {
+public class Usuario implements Serializable {
 
     @Id
     @Column(name = "id")
@@ -70,7 +70,7 @@ public class Usuario implements Serializable,UserDetails {
         return false;
     }
 
-    @Override
+    /*@Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
@@ -103,7 +103,7 @@ public class Usuario implements Serializable,UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
-    }
+    }*/
 
 }
 

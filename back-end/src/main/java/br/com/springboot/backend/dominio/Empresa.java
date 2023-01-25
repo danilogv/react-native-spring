@@ -1,5 +1,6 @@
 package br.com.springboot.backend.dominio;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,7 +25,8 @@ public class Empresa {
     @Column(name = "cnpj")
     private String cnpj;
 
-    @OneToMany(mappedBy = "empresa", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonIgnore
+    @OneToMany(mappedBy = "empresa", fetch = FetchType.EAGER)
     private List<Funcionario> funcionarios;
 
     public void setId(String id) {
