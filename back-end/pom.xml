@@ -5,7 +5,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.0.2</version>
-		<relativePath/>
+		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>br.com.springboot</groupId>
 	<artifactId>back-end</artifactId>
@@ -56,7 +56,6 @@
 			<artifactId>json</artifactId>
 			<version>20220924</version>
 		</dependency>
-
 	</dependencies>
 	<build>
 		<plugins>
