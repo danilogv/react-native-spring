@@ -4,7 +4,7 @@ import br.com.springboot.backend.dominio.Usuario;
 import br.com.springboot.backend.enumeracao.TipoOperacao;
 import br.com.springboot.backend.padrao_projeto.FacadeRepositorio;
 import org.springframework.http.HttpStatus;
-//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +53,11 @@ public class UsuarioServico extends FacadeRepositorio {
         this.usuario.deleteById(id);
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED,rollbackFor = Exception.class)
+    public Boolean existeUsuario(String login,String senha) {
+        return this.usuario.existsByLoginAndSenha(login,senha);
+    }
+
     private void validaUsuario(Usuario usuario,TipoOperacao operacao) {
         String id = usuario.getId();
         String login = usuario.getLogin();
@@ -70,8 +75,8 @@ public class UsuarioServico extends FacadeRepositorio {
             }
 
             if (operacao.equals(TipoOperacao.INSERCAO)) {
-                //BCryptPasswordEncoder decodificacao = new BCryptPasswordEncoder();
-                //senha = decodificacao.encode(senha);
+                BCryptPasswordEncoder decodificacao = new BCryptPasswordEncoder();
+                senha = decodificacao.encode(senha);
 
                 if (this.usuario.existsByLoginOrSenha(login,senha)) {
                     String msg = "Usuário já cadastrado.";
@@ -80,7 +85,7 @@ public class UsuarioServico extends FacadeRepositorio {
             }
 
             if (operacao.equals(TipoOperacao.ALTERACAO))
-                if (!this.usuario.existsByLogin(login) && this.usuario.existsByLoginAndSenha(login,senha)) {
+                if (!this.usuario.existsByLogin(login) && existeUsuario(login,senha)) {
                     String msg = "Usuário já cadastrado.";
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,msg);
                 }

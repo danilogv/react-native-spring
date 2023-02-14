@@ -24,8 +24,10 @@ export default function Login(props) {
         return true;
     }
 
-    function acessar() {
+    async function acessar() {
         if (validouAcesso()) {
+            const opcoes = {method: "GET",body: JSON.stringify(usuario),headers: configPagina};
+            const resposta = await fetch(urlUsuario,opcoes);
             setUsuario(estadoInicial);
             props.navigation.navigate("ListaEmpresas");
         }

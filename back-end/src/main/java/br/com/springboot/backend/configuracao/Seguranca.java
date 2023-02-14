@@ -5,10 +5,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,7 +18,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.util.List;
 
 @Configuration
-@EnableWebSecurity
 public class Seguranca {
 
     @Autowired
@@ -31,15 +29,30 @@ public class Seguranca {
     @Autowired
     private RequisicaoHttp requisicao;
 
-    /*@Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(this.usuario).passwordEncoder(new BCryptPasswordEncoder());
-    }*/
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+
+        authProvider.setUserDetailsService(this.usuario);
+        authProvider.setPasswordEncoder(passwordEncoder());
+
+        return authProvider;
+    }
 
     @Bean
-    public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfiguration) throws Exception {
+        return authConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOrigins(List.of("http://localhost:3000"));
+        cors.setAllowedOrigins(List.of("*"));
         cors.setAllowCredentials(true);
         cors.setAllowedHeaders(List.of("*"));
         cors.setAllowedMethods(List.of("HEAD","GET","POST","PUT","DELETE","PATCH","OPTIONS"));
@@ -56,29 +69,11 @@ public class Seguranca {
                                         .requestMatchers(HttpMethod.POST,"/usuario").permitAll()
                                         .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll().anyRequest().authenticated()
                 )
+                .authenticationProvider(authenticationProvider())
                 .addFilterBefore(new Autenticacao(this.usuario,this.jwt),UsernamePasswordAuthenticationFilter.class)
         ;
 
-        //AuthenticationManagerBuilder auth = http.getSharedObject(AuthenticationManagerBuilder.class);
-        //auth.userDetailsService(this.usuario).passwordEncoder(new BCryptPasswordEncoder());
-       // authenticationManager = authenticationManagerBuilder.build();
-
         return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder criptografiaSenha() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public AuthenticationManager autenticacacao(HttpSecurity http,PasswordEncoder criptografiaSenha,UsuarioConfiguracao usuario) throws Exception {
-        return http.getSharedObject(AuthenticationManagerBuilder.class)
-                .userDetailsService(usuario)
-                .passwordEncoder(criptografiaSenha)
-                .and()
-                .build()
-        ;
     }
 
 }

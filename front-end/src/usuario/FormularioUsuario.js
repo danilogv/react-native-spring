@@ -40,18 +40,19 @@ export default function FormularioUsuario(props) {
             if (validou()) {
                 const opcoes = {method: "POST",body: JSON.stringify(usuario),headers: configPagina};
                 const resposta = await fetch(urlUsuario,opcoes);
-                const msg = await obtemMensagemErro(resposta);
+                let msg = await obtemMensagemErro(resposta);
                 
                 if (msg && msg !== "")
                     throw new Error(msg);
 
                 msg = "Usuário cadastrado com sucesso.";
                 Alert.alert("Usuário",msg);
-                props.navigation.goBack();
             }
         }
         catch (erro) {
-            Alert.alert("Usuário","Erro de servidor : " + erro.message);
+            Alert.alert("Usuário",JSON.parse(erro.message).mensagem);
+        }
+        finally {
             props.navigation.goBack();
         }
     }

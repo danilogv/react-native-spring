@@ -17,7 +17,7 @@ public class Erro implements Serializable {
         HttpStatusCode statusCode = ex.getStatusCode();
 
         JSONObject json = new JSONObject();
-        json.put("error",ex.getReason());
+        json.put("mensagem",ex.getReason());
         json.put("status",statusCode.value());
 
         return new ResponseEntity<>(json.toString(),statusCode);
