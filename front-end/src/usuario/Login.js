@@ -1,7 +1,9 @@
 import React,{useState} from "react";
 import {SafeAreaView,TextInput,TouchableOpacity,Text,Alert,StyleSheet} from "react-native";
-import {Menu,Provider} from 'react-native-paper';
-import {Button} from '@rneui/themed';
+import {Menu,Provider} from "react-native-paper";
+import {Button} from "@rneui/themed";
+import {urlUsuario,obtemMensagemErro,configPagina} from "../global.js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const estadoInicial = {
     login: "",
@@ -25,11 +27,23 @@ export default function Login(props) {
     }
 
     async function acessar() {
-        if (validouAcesso()) {
-            const opcoes = {method: "GET",body: JSON.stringify(usuario),headers: configPagina};
-            const resposta = await fetch(urlUsuario,opcoes);
-            setUsuario(estadoInicial);
-            props.navigation.navigate("ListaEmpresas");
+        try {
+            if (validouAcesso()) {
+                const opcoes = {method: "POST",body: JSON.stringify(usuario),headers: configPagina};
+                const resposta = await fetch(urlUsuario + "/login",opcoes);
+                let msg = await obtemMensagemErro(resposta);
+                
+                if (msg && msg !== "")
+                    throw new Error(msg);
+
+                const token = await resposta.text();
+                await AsyncStorage.setItem("token",token);
+                setUsuario(estadoInicial);
+                props.navigation.navigate("ListaEmpresas");
+            }
+        }
+        catch (erro) {
+            Alert.alert("Usuário",JSON.parse(erro.message).mensagem);
         }
     }
 

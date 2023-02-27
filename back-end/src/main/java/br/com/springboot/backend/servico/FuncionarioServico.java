@@ -13,10 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class FuncionarioServico extends FacadeRepositorio {
@@ -27,6 +29,13 @@ public class FuncionarioServico extends FacadeRepositorio {
     @Transactional(isolation = Isolation.READ_COMMITTED,readOnly = true)
     public List<Funcionario> buscarTodos() {
         List<Funcionario> funcionarios = this.funcionario.findAll();
+
+        funcionarios = funcionarios
+                .stream()
+                .sorted(Comparator.comparing(Funcionario::getNome,String.CASE_INSENSITIVE_ORDER))
+                .collect(Collectors.toList())
+        ;
+
         return funcionarios;
     }
 

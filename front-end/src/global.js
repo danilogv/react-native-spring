@@ -1,6 +1,7 @@
 import {SafeAreaView,Text,StyleSheet} from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome.js";
 import {Button} from '@rneui/themed';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const configPagina = {
     "Access-Control-Allow-Origin": "*",
@@ -10,7 +11,6 @@ export const configPagina = {
 export const urlUsuario = "http://localhost:8080/usuario";
 export const urlEmpresa = "http://localhost:8080/empresa";
 export const urlFuncionario = "http://localhost:8080/funcionario";
-export const tokenExpirou = "Token expirado.";
 export const erroServidor = "Erro de servidor.";
 
 export const estilo = StyleSheet.create({
@@ -51,6 +51,11 @@ export function obtemIcone(nome,tamanho,cor) {
     );
 }
 
+async function logout(navigation) {
+    await AsyncStorage.setItem("token","");
+    navigation.navigate("Login");
+}
+
 export function criaMenu(menuAtivo,dispatchMenu,navigation,titulo) {
     const distanciaLogout = titulo === "Empresa" ? 225 : 200;
 
@@ -59,7 +64,7 @@ export function criaMenu(menuAtivo,dispatchMenu,navigation,titulo) {
             <Button type="clear" icon={obtemIcone("bars",25,"white")} onPress={() => menuAtivo(dispatchMenu)}>
                 <Text style={[estilo.textoBotao,{paddingRight: distanciaLogout}]}>{titulo}</Text>
             </Button>
-            <Button type="clear" icon={obtemIcone("sign-out",25,"white")} onPress={() => navigation.navigate("Login")} />
+            <Button type="clear" icon={obtemIcone("sign-out",25,"white")} onPress={() => logout(navigation)} />
         </SafeAreaView>
     );
 }
@@ -201,9 +206,6 @@ export function separadorMilhar(valor) {
 
 export async function obtemMensagemErro(resposta) {
     if (resposta && !resposta.ok) {
-        if (resposta.status === 401)
-            return tokenExpirou;
-
         if (resposta.status) {
             const msg = await resposta.text();
             return msg;

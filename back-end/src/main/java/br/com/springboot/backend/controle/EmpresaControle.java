@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -35,11 +36,11 @@ public class EmpresaControle extends FacadeServico implements ObjetoControle {
     }
 
     @GetMapping
-    public ResponseEntity<List<Empresa>> buscarTodos() {
+    public ResponseEntity<List<Empresa>> buscarTodos(@RequestParam(value = "nome",required = false) String nome) {
         List<Empresa> empresas = new ArrayList<>();
 
         try {
-            empresas = this.empresa.buscarTodos();
+            empresas = this.empresa.buscarTodos(nome);
         }
         catch (Exception ex) {
             this.geraExcecao(ex);

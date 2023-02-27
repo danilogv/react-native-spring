@@ -11,17 +11,32 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class EmpresaServico extends FacadeRepositorio {
 
     @Transactional(isolation = Isolation.READ_COMMITTED,readOnly = true)
-    public List<Empresa> buscarTodos() {
-        List<Empresa> empresas = this.empresa.findAll();
+    public List<Empresa> buscarTodos(String nome) {
+        List<Empresa> empresas;
+
+        if (Objects.isNull(nome) || nome.isBlank())
+            empresas = this.empresa.findAll();
+        else
+            empresas = this.empresa.findByNomeContainingIgnoreCase(nome);
+
+        empresas = empresas
+            .stream()
+            .sorted(Comparator.comparing(Empresa::getNome,String.CASE_INSENSITIVE_ORDER))
+            .collect(Collectors.toList())
+        ;
+
         return empresas;
     }
 

@@ -1,6 +1,7 @@
 import React,{useState,useReducer,useEffect} from "react";
 import {Text,SafeAreaView,TextInput,Button,Alert} from "react-native";
 import {Menu,Provider} from 'react-native-paper';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {criaMenu,estilo,mascaraCnpj,cnpjValido,configPagina,urlEmpresa,obtemMensagemErro} from "../global.js";
 import {estadoInicialMenu} from "../store/config.js";
 import {reducer} from "../store/menuReducer.js";
@@ -39,16 +40,21 @@ export default function FormularioEmpresa(props) {
 
     async function alterar() {
         try {
+            const cnpjMascara = mascaraCnpj(empresa.cnpj);
+            setEmpresa({...empresa,cnpj: cnpjMascara});
+
             if (validou()) {
                 let opcoes = undefined;
+                const token = await AsyncStorage.getItem("token");
+                const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
 
                 if (ehInsercao)
-                    opcoes = {method: "POST",body: JSON.stringify(empresa),headers: configPagina};
+                    opcoes = {method: "POST",body: JSON.stringify(empresa),headers: cabecalho};
                 else
-                    opcoes = {method: "PUT",body: JSON.stringify(empresa),headers: configPagina};
+                    opcoes = {method: "PUT",body: JSON.stringify(empresa),headers: cabecalho};
                 
                 const resposta = await fetch(urlEmpresa,opcoes);
-                const msg = await obtemMensagemErro(resposta);
+                let msg = await obtemMensagemErro(resposta);
                 
                 if (msg && msg !== "")
                     throw new Error(msg);
@@ -59,7 +65,7 @@ export default function FormularioEmpresa(props) {
             }
         }
         catch (erro) {
-            Alert.alert("Empresa","Erro de servidor : " + erro.message);
+            Alert.alert("Empresa",JSON.parse(erro.message).mensagem);
         }
     }
 
