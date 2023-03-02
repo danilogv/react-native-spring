@@ -4,14 +4,11 @@ import br.com.springboot.backend.dominio.Empresa;
 import br.com.springboot.backend.enumeracao.TipoOperacao;
 import br.com.springboot.backend.padrao_projeto.FacadeRepositorio;
 import br.com.springboot.backend.utilitario.Util;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;

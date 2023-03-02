@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -35,11 +36,11 @@ public class FuncionarioControle extends FacadeServico implements ObjetoControle
     }
 
     @GetMapping
-    public ResponseEntity<List<Funcionario>> buscarTodos() {
+    public ResponseEntity<List<Funcionario>> buscarTodos(@RequestParam(value = "nome",required = false) String nome) {
         List<Funcionario> funcionarios = new ArrayList<>();
 
         try {
-            funcionarios = this.funcionario.buscarTodos();
+            funcionarios = this.funcionario.buscarTodos(nome);
         }
         catch (Exception ex) {
             this.geraExcecao(ex);

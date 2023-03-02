@@ -1,8 +1,10 @@
 import React,{useState,useReducer,useEffect} from "react";
 import {Text,SafeAreaView,TextInput,Button,Alert} from "react-native";
+import {useIsFocused} from "@react-navigation/native";
 import DropDownPicker from "react-native-dropdown-picker";
-import {Menu,Provider} from 'react-native-paper';
-import {criaMenu,estilo,mascaraCpf,cpfValido,formataDecimal,separadorMilhar,configPagina,urlFuncionario} from "../global.js";
+import {Menu,Provider} from "react-native-paper";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {criaMenu,estilo,mascaraCpf,cpfValido,formataDecimal,separadorMilhar,obtemMensagemErro,configPagina,urlFuncionario,urlEmpresa} from "../global.js";
 import {estadoInicialMenu} from "../store/config.js";
 import {reducer} from "../store/menuReducer.js";
 import {menuAtivo,menuInativo} from "../store/menuAction.js";
@@ -15,17 +17,50 @@ export default function FormularioFuncionario(props) {
     const [stateMenu,dispatchMenu] = useReducer(reducer,estadoInicialMenu);
     const [comboAberta,setComboAberta] = useState(false);
     const [empresa,setEmpresa] = useState(null);
-    const [empresas,setEmpresas] = useState([
-        {label: 'Empresa 1', value: 1},
-        {label: 'Empresa 2', value: 2}
-    ]);
+    const [empresas,setEmpresas] = useState([]);
+    const voltouFoco = useIsFocused();
 
     useEffect(() => {
         if (route.params) {
             ehInsercao = false;
             setEmpresa(route.params.empresa.id);
         }
+
+        obtemEmpresas();
     },[]);
+
+    useEffect(() => {
+        obtemEmpresas();
+    },[voltouFoco]);
+
+    async function obtemEmpresas() {
+        try {
+            const token = await AsyncStorage.getItem("token");
+            const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
+            const opcoes = {method: "GET",headers: cabecalho};
+            const resposta = await fetch(urlEmpresa,opcoes);
+
+            let msg = await obtemMensagemErro(resposta);
+
+            if (msg && msg !== "")
+                throw new Error(msg);
+
+            const dados = await resposta.json();
+            let combobox = [];
+
+            dados.forEach((emp) => {
+                let objetoCombobox = {label: "",value: ""};
+                objetoCombobox.label = emp.nome;
+                objetoCombobox.value = emp.id;
+                combobox.push(objetoCombobox);
+            });
+
+            setEmpresas(combobox);
+        }
+        catch(erro) {
+            Alert.alert("Funcionário",JSON.parse(erro.message).mensagem);
+        }
+    }
 
     function validou() {
         if (!funcionario.nome || funcionario.nome === "") {
@@ -68,16 +103,30 @@ export default function FormularioFuncionario(props) {
 
     async function alterar() {
         try {
+            const funcionarioBd = {
+                id: route.params.id,
+                nome: funcionario.nome,
+                idade: funcionario.idade,
+                cpf: mascaraCpf(funcionario.cpf),
+                salario: funcionario.salario.replace(".","").replace(",","."),
+                urlImagem: "https://www.google.com.br",
+                empresa: {
+                    id: empresa
+                }
+            };
+
             if (validou()) {
                 let opcoes = undefined;
+                const token = await AsyncStorage.getItem("token");
+                const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
 
                 if (ehInsercao)
-                    opcoes = {method: "POST",body: JSON.stringify(funcionario),headers: configPagina};
+                    opcoes = {method: "POST",body: JSON.stringify(funcionarioBd),headers: cabecalho};
                 else
-                    opcoes = {method: "PUT",body: JSON.stringify(funcionario),headers: configPagina};
+                    opcoes = {method: "PUT",body: JSON.stringify(funcionarioBd),headers: cabecalho};
                 
                 const resposta = await fetch(urlFuncionario,opcoes);
-                const msg = await obtemMensagemErro(resposta);
+                let msg = await obtemMensagemErro(resposta);
                 
                 if (msg && msg !== "")
                     throw new Error(msg);
@@ -88,7 +137,7 @@ export default function FormularioFuncionario(props) {
             }
         }
         catch (erro) {
-            Alert.alert("Empresa","Erro de servidor : " + erro.message);
+            Alert.alert("Funcionário","Erro de servidor : " + erro.message);
         }
     }
 

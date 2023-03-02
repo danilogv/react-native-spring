@@ -1,67 +1,71 @@
 import React,{useReducer,useState,useEffect} from "react";
 import {FlatList,Alert,TextInput,SafeAreaView,StyleSheet} from "react-native";
+import {useIsFocused} from "@react-navigation/native";
 import {Menu,Provider} from 'react-native-paper';
 import {ListItem,Button} from '@rneui/themed';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {estadoInicialMenu} from "../store/config.js";
 import {reducer} from "../store/menuReducer.js";
 import {menuAtivo,menuInativo} from "../store/menuAction.js";
 import {obtemIcone,configPagina,criaMenu,estilo,urlFuncionario,obtemMensagemErro} from "../global.js";
 
-const estadoInicial = [
-    {
-        id: 1,
-        nome: "Funcionário 1",
-        cpf: "111.111.111-11",
-        salario: 1315.25,
-        idade: 25,
-        empresa: {
-            id: 1,
-            nome: "Empresa 1",
-            cnpj: "11.111.111/1111-11"
-        }
-    },
-    {
-        id: 2,
-        nome: "Funcionário 2",
-        cpf: "222.222.222-22",
-        salario: 2116.70,
-        idade: 30,
-        empresa: {
-            id: 1,
-            nome: "Empresa 1",
-            cnpj: "11.111.111/1111-11"
-        }
-    },
-    {
-        id: 3,
-        nome: "Funcionário 3",
-        cpf: "333.333.333-33",
-        salario: 3000.00,
-        idade: 45,
-        empresa: {
-            id: 2,
-            nome: "Empresa 2",
-            cnpj: "22.222.222/2222-22"
-        }
-    }
-];
-
 export default function ListaFuncionarios(props) {
-    const [funcionarios,setFuncionarios] = useState({});
+    const [funcionarios,setFuncionarios] = useState([]);
     const [pesquisa,setPesquisa] = useState("");
     const [stateMenu,dispatchMenu] = useReducer(reducer,estadoInicialMenu);
+    const voltouFoco = useIsFocused();
 
     useEffect(() => {
-        setFuncionarios(estadoInicial);
+        obtemFuncionarios();
     },[]);
+
+    useEffect(() => {
+        obtemFuncionarios();
+    },[voltouFoco]);
+
+    useEffect(() => {
+        if (pesquisa !== "")
+            filtrar();
+        else
+            obtemFuncionarios();
+    },[pesquisa]);
 
     async function filtrar() {
         try {
-            const opcoes = {method: "GET",headers: configPagina};
-            const resposta = await fetch(urlEmpresa + "?nome=" + pesquisa,opcoes);
+            const token = await AsyncStorage.getItem("token");
+            const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
+            const opcoes = {method: "GET",headers: cabecalho};
+            const resposta = await fetch(urlFuncionario + "?nome=" + pesquisa,opcoes);
+            
+            let msg = await obtemMensagemErro(resposta);
+                
+            if (msg && msg !== "")
+                throw new Error(msg);
+
+            const dados = await resposta.json();
+            setFuncionarios(dados);
         }
         catch (erro) {
-            Alert.alert("Pesquisa Empresa","Erro de servidor.");
+            Alert.alert("Funcionário",JSON.parse(erro.message).mensagem);
+        }
+    }
+
+    async function obtemFuncionarios() {
+        try {
+            const token = await AsyncStorage.getItem("token");
+            const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
+            const opcoes = {method: "GET",headers: cabecalho};
+            const resposta = await fetch(urlFuncionario,opcoes);
+            let msg = await obtemMensagemErro(resposta);
+
+            if (msg && msg !== "")
+                throw new Error(msg);
+
+            const dados = await resposta.json();
+            setFuncionarios(dados);
+        }
+        catch(erro) {
+            Alert.alert("Funcionário",JSON.parse(erro.message).mensagem);
         }
     }
 
@@ -71,15 +75,22 @@ export default function ListaFuncionarios(props) {
                 text: "Sim",
                 async onPress() {
                     try {
-                        const opcoes =  {method: "DELETE",body: funcionario,headers: configPagina};
-                        const resposta = await fetch(urlFuncionario + "/" + funcionario.id,opcoes);
-                        const msg = await obtemMensagemErro(resposta);
+                        const token = await AsyncStorage.getItem("token");
+                        const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
+                        let opcoes =  {method: "DELETE",body: funcionario,headers: cabecalho};
+                        let resposta = await fetch(urlFuncionario + "/" + funcionario.id,opcoes);
+                        let msg = await obtemMensagemErro(resposta);
                 
                         if (msg && msg !== "")
                             throw new Error(msg);
+
+                        await obtemFuncionarios();
+                        
+                        msg = "Funcionário excluído com sucesso.";
+                        Alert.alert("Funcionário",msg);
                     }
                     catch (erro) {
-                        Alert.alert("Excluir Funcionário","Erro de servidor." + erro.message);
+                        Alert.alert("Funcionário",JSON.parse(erro.message).mensagem);
                     }
                 }
             },

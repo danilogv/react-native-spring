@@ -5,13 +5,11 @@ import br.com.springboot.backend.dominio.Funcionario;
 import br.com.springboot.backend.enumeracao.TipoOperacao;
 import br.com.springboot.backend.padrao_projeto.FacadeRepositorio;
 import br.com.springboot.backend.utilitario.Util;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
@@ -27,8 +25,13 @@ public class FuncionarioServico extends FacadeRepositorio {
     private final Integer MAIORIDADE = 18;
 
     @Transactional(isolation = Isolation.READ_COMMITTED,readOnly = true)
-    public List<Funcionario> buscarTodos() {
-        List<Funcionario> funcionarios = this.funcionario.findAll();
+    public List<Funcionario> buscarTodos(String nome) {
+        List<Funcionario> funcionarios;
+
+        if (Objects.isNull(nome) || nome.isBlank())
+            funcionarios = this.funcionario.findAll();
+        else
+            funcionarios = this.funcionario.findByNomeContainingIgnoreCase(nome);
 
         funcionarios = funcionarios
                 .stream()
