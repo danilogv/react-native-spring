@@ -2,6 +2,7 @@ import React,{useState,useReducer,useEffect} from "react";
 import {Text,SafeAreaView,TextInput,Button,Alert} from "react-native";
 import {Menu,Provider} from 'react-native-paper';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Espera from "../Espera.js";
 import {criaMenu,estilo,mascaraCnpj,cnpjValido,configPagina,urlEmpresa,obtemMensagemErro} from "../global.js";
 import {estadoInicialMenu} from "../store/config.js";
 import {reducer} from "../store/menuReducer.js";
@@ -13,6 +14,7 @@ export default function FormularioEmpresa(props) {
     const {route,navigation} = props;
     const [empresa,setEmpresa] = useState(route.params ? route.params : {});
     const [stateMenu,dispatchMenu] = useReducer(reducer,estadoInicialMenu);
+    const [esperar,setEsperar] = useState(false);
 
     useEffect(() => {
         if (route.params)
@@ -40,32 +42,39 @@ export default function FormularioEmpresa(props) {
 
     async function alterar() {
         try {
+            setEsperar(true);
             const cnpjMascara = mascaraCnpj(empresa.cnpj);
             setEmpresa({...empresa,cnpj: cnpjMascara});
 
             if (validou()) {
                 let opcoes = undefined;
                 const token = await AsyncStorage.getItem("token");
-                const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
 
-                if (ehInsercao)
-                    opcoes = {method: "POST",body: JSON.stringify(empresa),headers: cabecalho};
-                else
-                    opcoes = {method: "PUT",body: JSON.stringify(empresa),headers: cabecalho};
-                
-                const resposta = await fetch(urlEmpresa,opcoes);
-                let msg = await obtemMensagemErro(resposta);
-                
-                if (msg && msg !== "")
-                    throw new Error(msg);
+                if (token && token !== "") {
+                    const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
 
-                msg = ehInsercao ? "Empresa cadastrada com sucesso." : "Empresa alterada com sucesso.";
-                Alert.alert("Empresa",msg);
-                navigation.goBack();
+                    if (ehInsercao)
+                        opcoes = {method: "POST",body: JSON.stringify(empresa),headers: cabecalho};
+                    else
+                        opcoes = {method: "PUT",body: JSON.stringify(empresa),headers: cabecalho};
+                    
+                    const resposta = await fetch(urlEmpresa,opcoes);
+                    let msg = await obtemMensagemErro(resposta,props.navigation);
+                    
+                    if (msg && msg !== "")
+                        throw new Error(msg);
+
+                    msg = ehInsercao ? "Empresa cadastrada com sucesso." : "Empresa alterada com sucesso.";
+                    Alert.alert("Empresa",msg);
+                    navigation.goBack();
+                }
             }
         }
         catch (erro) {
             Alert.alert("Empresa",JSON.parse(erro.message).mensagem);
+        }
+        finally {
+            setEsperar(false);
         }
     }
 
@@ -81,6 +90,13 @@ export default function FormularioEmpresa(props) {
 
     return (
         <Provider>
+            {
+                esperar
+                ?
+                    <Espera />
+                :
+                    undefined
+            }
             <SafeAreaView style={estilo.painel}>
                 <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu,navigation,"Empresa")}>
                     <Menu.Item onPress={() => alteraTela("ListaEmpresas")} title="Empresas" />

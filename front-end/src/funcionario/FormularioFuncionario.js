@@ -4,6 +4,7 @@ import {useIsFocused} from "@react-navigation/native";
 import DropDownPicker from "react-native-dropdown-picker";
 import {Menu,Provider} from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Espera from "../Espera.js";
 import {criaMenu,estilo,mascaraCpf,cpfValido,formataDecimal,separadorMilhar,obtemMensagemErro,configPagina,urlFuncionario,urlEmpresa} from "../global.js";
 import {estadoInicialMenu} from "../store/config.js";
 import {reducer} from "../store/menuReducer.js";
@@ -18,6 +19,7 @@ export default function FormularioFuncionario(props) {
     const [comboAberta,setComboAberta] = useState(false);
     const [empresa,setEmpresa] = useState(null);
     const [empresas,setEmpresas] = useState([]);
+    const [esperar,setEsperar] = useState(false);
     const voltouFoco = useIsFocused();
 
     useEffect(() => {
@@ -35,30 +37,37 @@ export default function FormularioFuncionario(props) {
 
     async function obtemEmpresas() {
         try {
+            setEsperar(true);
             const token = await AsyncStorage.getItem("token");
-            const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
-            const opcoes = {method: "GET",headers: cabecalho};
-            const resposta = await fetch(urlEmpresa,opcoes);
 
-            let msg = await obtemMensagemErro(resposta);
+            if (token && token !== "") {
+                const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
+                const opcoes = {method: "GET",headers: cabecalho};
+                const resposta = await fetch(urlEmpresa,opcoes);
 
-            if (msg && msg !== "")
-                throw new Error(msg);
+                let msg = await obtemMensagemErro(resposta,props.navigation);
 
-            const dados = await resposta.json();
-            let combobox = [];
+                if (msg && msg !== "")
+                    throw new Error(msg);
 
-            dados.forEach((emp) => {
-                let objetoCombobox = {label: "",value: ""};
-                objetoCombobox.label = emp.nome;
-                objetoCombobox.value = emp.id;
-                combobox.push(objetoCombobox);
-            });
+                const dados = await resposta.json();
+                let combobox = [];
 
-            setEmpresas(combobox);
+                dados.forEach((emp) => {
+                    let objetoCombobox = {label: "",value: ""};
+                    objetoCombobox.label = emp.nome;
+                    objetoCombobox.value = emp.id;
+                    combobox.push(objetoCombobox);
+                });
+
+                setEmpresas(combobox);
+            }
         }
         catch(erro) {
             Alert.alert("Funcionário",JSON.parse(erro.message).mensagem);
+        }
+        finally {
+            setEsperar(false);
         }
     }
 
@@ -103,6 +112,8 @@ export default function FormularioFuncionario(props) {
 
     async function alterar() {
         try {
+            setEsperar(true);
+
             const funcionarioBd = {
                 id: route.params.id,
                 nome: funcionario.nome,
@@ -118,26 +129,32 @@ export default function FormularioFuncionario(props) {
             if (validou()) {
                 let opcoes = undefined;
                 const token = await AsyncStorage.getItem("token");
-                const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
 
-                if (ehInsercao)
-                    opcoes = {method: "POST",body: JSON.stringify(funcionarioBd),headers: cabecalho};
-                else
-                    opcoes = {method: "PUT",body: JSON.stringify(funcionarioBd),headers: cabecalho};
-                
-                const resposta = await fetch(urlFuncionario,opcoes);
-                let msg = await obtemMensagemErro(resposta);
-                
-                if (msg && msg !== "")
-                    throw new Error(msg);
+                if (token && token !== "") {
+                    const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
 
-                msg = ehInsercao ? "Funcionário cadastrado com sucesso." : "Dados alterados com sucesso.";
-                Alert.alert("Funcionário",msg);
-                navigation.goBack();
+                    if (ehInsercao)
+                        opcoes = {method: "POST",body: JSON.stringify(funcionarioBd),headers: cabecalho};
+                    else
+                        opcoes = {method: "PUT",body: JSON.stringify(funcionarioBd),headers: cabecalho};
+                    
+                    const resposta = await fetch(urlFuncionario,opcoes);
+                    let msg = await obtemMensagemErro(resposta,props.navigation);
+                    
+                    if (msg && msg !== "")
+                        throw new Error(msg);
+
+                    msg = ehInsercao ? "Funcionário cadastrado com sucesso." : "Dados alterados com sucesso.";
+                    Alert.alert("Funcionário",msg);
+                    navigation.goBack();
+                }
             }
         }
         catch (erro) {
-            Alert.alert("Funcionário","Erro de servidor : " + erro.message);
+            Alert.alert("Funcionário",JSON.parse(erro.message).mensagem);
+        }
+        finally {
+            setEsperar(false);
         }
     }
 
@@ -169,6 +186,13 @@ export default function FormularioFuncionario(props) {
 
     return (
         <Provider>
+            {
+                esperar
+                ?
+                    <Espera />
+                :
+                    undefined
+            }
             <SafeAreaView style={estilo.painel}>
                 <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu,navigation,"Funcionário")}>
                     <Menu.Item onPress={() => alteraTela("ListaEmpresas")} title="Empresas" />

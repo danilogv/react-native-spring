@@ -2,6 +2,7 @@ import React,{useState} from "react";
 import {SafeAreaView,TextInput,TouchableOpacity,Text,Alert,StyleSheet} from "react-native";
 import {Menu,Provider} from "react-native-paper";
 import {Button} from "@rneui/themed";
+import Espera from "../Espera.js";
 import {urlUsuario,obtemMensagemErro,configPagina} from "../global.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -12,6 +13,7 @@ const estadoInicial = {
 
 export default function Login(props) {
     const [usuario,setUsuario] = useState(estadoInicial);
+    const [esperar,setEsperar] = useState(false);
 
     function validouAcesso() {
         if (!usuario || usuario.login === "") {
@@ -28,6 +30,8 @@ export default function Login(props) {
 
     async function acessar() {
         try {
+            setEsperar(true);
+
             if (validouAcesso()) {
                 const opcoes = {method: "POST",body: JSON.stringify(usuario),headers: configPagina};
                 const resposta = await fetch(urlUsuario + "/login",opcoes);
@@ -44,6 +48,9 @@ export default function Login(props) {
         }
         catch (erro) {
             Alert.alert("Usuário",JSON.parse(erro.message).mensagem);
+        }
+        finally {
+            setEsperar(false);
         }
     }
 
@@ -63,6 +70,13 @@ export default function Login(props) {
 
     return (
         <Provider>
+            {
+                esperar
+                ?
+                    <Espera />
+                :
+                    undefined
+            }
             <SafeAreaView style={estilo.menu}>
                 <Menu visible={false} anchor={criaMenu()} />
             </SafeAreaView>       

@@ -4,6 +4,7 @@ import {useIsFocused} from "@react-navigation/native";
 import {Menu,Provider} from 'react-native-paper';
 import {ListItem,Button} from '@rneui/themed';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Espera from "../Espera.js";
 import {estadoInicialMenu} from "../store/config.js";
 import {reducer} from "../store/menuReducer.js";
 import {menuAtivo,menuInativo} from "../store/menuAction.js";
@@ -13,6 +14,7 @@ export default function ListaFuncionarios(props) {
     const [funcionarios,setFuncionarios] = useState([]);
     const [pesquisa,setPesquisa] = useState("");
     const [stateMenu,dispatchMenu] = useReducer(reducer,estadoInicialMenu);
+    const [esperar,setEsperar] = useState(false);
     const voltouFoco = useIsFocused();
 
     useEffect(() => {
@@ -32,40 +34,54 @@ export default function ListaFuncionarios(props) {
 
     async function filtrar() {
         try {
+            setEsperar(true);
             const token = await AsyncStorage.getItem("token");
-            const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
-            const opcoes = {method: "GET",headers: cabecalho};
-            const resposta = await fetch(urlFuncionario + "?nome=" + pesquisa,opcoes);
-            
-            let msg = await obtemMensagemErro(resposta);
-                
-            if (msg && msg !== "")
-                throw new Error(msg);
 
-            const dados = await resposta.json();
-            setFuncionarios(dados);
+            if (token && token !== "") {
+                const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
+                const opcoes = {method: "GET",headers: cabecalho};
+                const resposta = await fetch(urlFuncionario + "?nome=" + pesquisa,opcoes);
+                
+                let msg = await obtemMensagemErro(resposta,props.navigation);
+                    
+                if (msg && msg !== "")
+                    throw new Error(msg);
+
+                const dados = await resposta.json();
+                setFuncionarios(dados);
+            }
         }
         catch (erro) {
             Alert.alert("Funcionário",JSON.parse(erro.message).mensagem);
+        }
+        finally {
+            setEsperar(false);
         }
     }
 
     async function obtemFuncionarios() {
         try {
+            setEsperar(true);
             const token = await AsyncStorage.getItem("token");
-            const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
-            const opcoes = {method: "GET",headers: cabecalho};
-            const resposta = await fetch(urlFuncionario,opcoes);
-            let msg = await obtemMensagemErro(resposta);
 
-            if (msg && msg !== "")
-                throw new Error(msg);
+            if (token && token !== "") {
+                const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
+                const opcoes = {method: "GET",headers: cabecalho};
+                const resposta = await fetch(urlFuncionario,opcoes);
+                let msg = await obtemMensagemErro(resposta,props.navigation);
 
-            const dados = await resposta.json();
-            setFuncionarios(dados);
+                if (msg && msg !== "")
+                    throw new Error(msg);
+
+                const dados = await resposta.json();
+                setFuncionarios(dados);
+            }
         }
         catch(erro) {
             Alert.alert("Funcionário",JSON.parse(erro.message).mensagem);
+        }
+        finally {
+            setEsperar(false);
         }
     }
 
@@ -75,22 +91,29 @@ export default function ListaFuncionarios(props) {
                 text: "Sim",
                 async onPress() {
                     try {
+                        setEsperar(true);
                         const token = await AsyncStorage.getItem("token");
-                        const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
-                        let opcoes =  {method: "DELETE",body: funcionario,headers: cabecalho};
-                        let resposta = await fetch(urlFuncionario + "/" + funcionario.id,opcoes);
-                        let msg = await obtemMensagemErro(resposta);
-                
-                        if (msg && msg !== "")
-                            throw new Error(msg);
 
-                        await obtemFuncionarios();
-                        
-                        msg = "Funcionário excluído com sucesso.";
-                        Alert.alert("Funcionário",msg);
+                        if (token && token !== "") {
+                            const cabecalho = {...configPagina,"Authorization": "Bearer " + token};
+                            let opcoes =  {method: "DELETE",body: funcionario,headers: cabecalho};
+                            let resposta = await fetch(urlFuncionario + "/" + funcionario.id,opcoes);
+                            let msg = await obtemMensagemErro(resposta,props.navigation);
+                    
+                            if (msg && msg !== "")
+                                throw new Error(msg);
+
+                            await obtemFuncionarios();
+                            
+                            msg = "Funcionário excluído com sucesso.";
+                            Alert.alert("Funcionário",msg);
+                        }
                     }
                     catch (erro) {
                         Alert.alert("Funcionário",JSON.parse(erro.message).mensagem);
+                    }
+                    finally {
+                        setEsperar(false);
                     }
                 }
             },
@@ -131,6 +154,13 @@ export default function ListaFuncionarios(props) {
 
     return (
         <Provider>
+            {
+                esperar
+                ?
+                    <Espera />
+                :
+                    undefined
+            }
             <SafeAreaView style={estilo.painel}>
                 <Menu visible={stateMenu.menuVisivel} onDismiss={() => menuInativo(dispatchMenu)} anchor={criaMenu(menuAtivo,dispatchMenu,props.navigation,"Funcionário")}>
                     <Menu.Item onPress={() => alteraTela("ListaEmpresas")} title="Empresas" />

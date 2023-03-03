@@ -1,7 +1,8 @@
 import React,{useState} from "react";
 import {Text,SafeAreaView,TextInput,Alert,StyleSheet} from "react-native";
-import {Menu,Provider} from 'react-native-paper';
+import {Menu,Provider} from "react-native-paper";
 import {Button} from '@rneui/themed';
+import Espera from "../Espera.js";
 import {urlUsuario,obtemMensagemErro,configPagina} from "../global.js";
 
 const estadoInicial = {
@@ -11,6 +12,7 @@ const estadoInicial = {
 
 export default function FormularioUsuario(props) {
     const [usuario,setUsuario] = useState(estadoInicial);
+    const [esperar,setEsperar] = useState(false);
 
     function criaMenu() {
         return (
@@ -37,6 +39,8 @@ export default function FormularioUsuario(props) {
 
     async function cadastrar() {
         try {
+            setEsperar(true);
+
             if (validou()) {
                 const opcoes = {method: "POST",body: JSON.stringify(usuario),headers: configPagina};
                 const resposta = await fetch(urlUsuario,opcoes);
@@ -53,12 +57,20 @@ export default function FormularioUsuario(props) {
             Alert.alert("Usuário",JSON.parse(erro.message).mensagem);
         }
         finally {
+            setEsperar(false);
             props.navigation.goBack();
         }
     }
 
     return (
         <Provider>
+            {
+                esperar
+                ?
+                    <Espera />
+                :
+                    undefined
+            }
             <SafeAreaView style={estilo.menu}>
                 <Menu visible={false} anchor={criaMenu()} />
             </SafeAreaView>    

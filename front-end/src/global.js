@@ -12,6 +12,7 @@ export const urlUsuario = "http://localhost:8080/usuario";
 export const urlEmpresa = "http://localhost:8080/empresa";
 export const urlFuncionario = "http://localhost:8080/funcionario";
 export const erroServidor = "Erro de servidor.";
+export const erroAutorizacao = "Token expirou ou sem autorização.";
 
 export const estilo = StyleSheet.create({
     painel: {
@@ -42,6 +43,15 @@ export const estilo = StyleSheet.create({
         borderColor: "gray",
         borderWidth: 1,
         marginBottom: 10
+    },
+    painelCarregamento: {
+        flex: 1,
+        justifyContent: "center"
+    },
+    carregamento: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+        padding: 10
     }
 });
 
@@ -204,10 +214,18 @@ export function separadorMilhar(valor) {
     return valor;
 }
 
-export async function obtemMensagemErro(resposta) {
+export async function obtemMensagemErro(resposta,navigation) {
     if (resposta && !resposta.ok) {
         if (resposta.status) {
-            const msg = await resposta.text();
+            let msg = undefined;
+
+            if (resposta.status === 401) {
+                msg = erroAutorizacao;
+                navigation.navigate("Login");
+            }
+            else 
+                msg = await resposta.text();
+
             return msg;
         }
 
