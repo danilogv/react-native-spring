@@ -35,7 +35,7 @@ export default function Login(props) {
             if (validouAcesso()) {
                 const opcoes = {method: "POST",body: JSON.stringify(usuario),headers: configPagina};
                 const resposta = await fetch(urlUsuario + "/login",opcoes);
-                let msg = await obtemMensagemErro(resposta);
+                let msg = await obtemMensagemErro(resposta,props.navigation);
                 
                 if (msg && msg !== "")
                     throw new Error(msg);
@@ -47,7 +47,7 @@ export default function Login(props) {
             }
         }
         catch (erro) {
-            Alert.alert("Usuário",JSON.parse(erro.message).mensagem);
+            Alert.alert("Usuário",erro.message);
         }
         finally {
             setEsperar(false);

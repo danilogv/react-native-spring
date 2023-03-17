@@ -17,7 +17,7 @@
             <column name="idade" type="int">
                 <constraints nullable="false" />
             </column>
-            <column name="url_imagem" type="varchar(255)">
+            <column name="imagem" type="mediumtext">
                 <constraints nullable="false" />
             </column>
             <column name="empresa_id" type="char(36)">

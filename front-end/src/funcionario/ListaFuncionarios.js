@@ -2,7 +2,7 @@ import React,{useReducer,useState,useEffect} from "react";
 import {FlatList,Alert,TextInput,SafeAreaView,StyleSheet} from "react-native";
 import {useIsFocused} from "@react-navigation/native";
 import {Menu,Provider} from 'react-native-paper';
-import {ListItem,Button} from '@rneui/themed';
+import {ListItem,Button,Avatar} from '@rneui/themed';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Espera from "../Espera.js";
 import {estadoInicialMenu} from "../store/config.js";
@@ -133,6 +133,7 @@ export default function ListaFuncionarios(props) {
         return (
             <ListItem bottomDivider={true} onPress={() => props.navigation.navigate("FormularioFuncionario")}>
                 <ListItem.Content>
+                    {/*<Avatar source={{uri: funcionario.imagem}} />*/}
                     <ListItem.Title>Nome: {funcionario.nome}</ListItem.Title>
                     <ListItem.Subtitle>CPF: {funcionario.cpf}</ListItem.Subtitle>
                     <ListItem.Subtitle>Salário: {funcionario.salario.toLocaleString("pt-BR",{style: "currency",currency: "BRL"})}</ListItem.Subtitle>

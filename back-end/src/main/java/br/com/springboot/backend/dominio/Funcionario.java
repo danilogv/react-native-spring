@@ -8,7 +8,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
 import java.math.BigDecimal;
 
 @Entity
@@ -31,8 +30,8 @@ public class Funcionario {
     @Column(name = "idade")
     private Integer idade;
 
-    @Column(name = "url_imagem")
-    private String urlImagem;
+    @Column(name = "imagem")
+    private String imagem;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "empresa_id")
@@ -78,12 +77,12 @@ public class Funcionario {
         return this.idade;
     }
 
-    public void setUrlImagem(String urlImagem) {
-        this.urlImagem = urlImagem;
+    public void setImagem(String imagem) {
+        this.imagem = imagem;
     }
 
-    public String getUrlImagem() {
-        return this.urlImagem;
+    public String getImagem() {
+        return this.imagem;
     }
 
     public void setEmpresa(Empresa empresa) {
